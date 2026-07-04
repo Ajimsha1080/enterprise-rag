@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "containerAppName": {
+      "value": "rag-api"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "groqApiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.KeyVault/vaults/{keyvault-name}"
+        },
+        "secretName": "groq-api-key"
+      }
+    },
+    "langsmithApiKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.KeyVault/vaults/{keyvault-name}"
+        },
+        "secretName": "langsmith-api-key"
+      }
+    },
+    "replicaCount": {
+      "value": 1
+    },
+    "cpuCoreCount": {
+      "value": 0.25
+    },
+    "memoryInGB": {
+      "value": 0.5
+    },
+    "environment": {
+      "value": "Production"
+    }
+  }
+}

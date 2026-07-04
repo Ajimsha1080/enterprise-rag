@@ -1,0 +1,11 @@
+
+ Machine Learning Basics
+Machine learning is a subset of artificial intelligence that focuses on the development of algorithms and statistical models that enable computers to 
+perform tasks without explicit instructions. It involves training a model on a dataset, allowing it to
+learn patterns and make predictions or decisions based on new data.The libraries like scikit-learn, TensorFlow,
+and PyTorch have made it easier for developers
+to implement machine learning algorithms and build powerful models.
+Types of Machine Learning Algorithms
+1.Supervised learning
+2.Unsupervised learning
+3.Reinforcement learning

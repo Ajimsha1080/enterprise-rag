@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc
+  namespace: rag-system
+  labels:
+    app: rag-api
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: managed-premium
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: faiss-pvc
+  namespace: rag-system
+  labels:
+    app: rag-api
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: managed-premium

@@ -1,0 +1,16 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.uv-cache/
+.uv-python/
+
+# Local/generated vector data
+faiss_store/
+data/vector_store/
+
+# Notebook checkpoints
+.ipynb_checkpoints/

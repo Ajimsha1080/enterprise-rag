@@ -1,0 +1,30 @@
+[project]
+name = "rag"
+version = "0.1.0"
+description = "Production-ready RAG API over local documents"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.116.1",
+    "uvicorn[standard]>=0.35.0",
+    "chromadb>=1.5.9",
+    "faiss-cpu>=1.14.3",
+    "groq>=0.37.1",
+    "ipykernel>=7.3.0",
+    "ipywidgets>=8.1.8",
+    "langchain>=1.3.9",
+    "langchain-community>=0.4.2",
+    "langchain-core>=1.4.7",
+    "langchain-groq>=1.1.3",
+    "langchain-huggingface>=1.2.2",
+    "langsmith>=0.8.15",
+    "pandas>=2.3.3",
+    "pymupdf>=1.27.2.3",
+    "pypdf>=6.13.2",
+    "python-dotenv>=1.2.2",
+    "sentence-transformers>=5.5.1",
+    "beautifulsoup4>=4.15.0",
+    "tiktoken>=0.13.0",
+    "mcp>=1.0.0",
+    "fastmcp>=3.4.2",
+]

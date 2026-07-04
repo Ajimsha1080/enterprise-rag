@@ -1,0 +1,19 @@
+services:
+  rag-api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      RAG_DATA_DIR: /app/data
+      RAG_PERSIST_DIR: /app/faiss_store
+    volumes:
+      - ./data:/app/data:ro
+      - ./faiss_store:/app/faiss_store
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

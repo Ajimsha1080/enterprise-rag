@@ -1,0 +1,132 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-api
+  namespace: rag-system
+  labels:
+    app: rag-api
+    version: v1
+spec:
+<<<<<<< HEAD
+  replicas: 1
+=======
+  replicas: 2
+>>>>>>> 2f0c52b (first commit)
+  selector:
+    matchLabels:
+      app: rag-api
+  template:
+    metadata:
+      labels:
+        app: rag-api
+<<<<<<< HEAD
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+        appmesh.kubernetes.io/sidecarInjectorWebhook: enabled
+    spec:
+      containers:
+      - name: rag-api
+        image: rag-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        env:
+=======
+    spec:
+      containers:
+      - name: rag-api
+        image: YOUR_REGISTRY/rag-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+          protocol: TCP
+        env:
+        - name: GROQ_API_KEY
+          value: "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"
+        - name: LANGSMITH_API_KEY
+          value: "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"
+        - name: LANGSMITH_PROJECT
+          value: "rag-system"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+>>>>>>> 2f0c52b (first commit)
+        - name: RAG_DATA_DIR
+          value: "/app/data"
+        - name: RAG_PERSIST_DIR
+          value: "/app/faiss_store"
+        - name: RAG_EMBEDDING_MODEL
+          value: "all-MiniLM-L6-v2"
+        - name: RAG_LLM_MODEL
+          value: "llama-3.3-70b-versatile"
+        - name: RAG_DEFAULT_TOP_K
+          value: "5"
+        - name: RAG_AUTO_BUILD_INDEX
+          value: "true"
+        - name: GROQ_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rag-api-secrets
+              key: groq-api-key
+        - name: LANGSMITH_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rag-api-secrets
+              key: langsmith-api-key
+        - name: ENVIRONMENT
+          value: "Production"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: data-volume
+          mountPath: "/app/data"
+        - name: faiss-volume
+          mountPath: "/app/faiss_store"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: data-pvc
+      - name: faiss-volume
+        persistentVolumeClaim:
+          claimName: faiss-pvc
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000

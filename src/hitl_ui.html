@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human-in-the-Loop Management</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --text: #16181d;
+            --muted: #606775;
+            --line: #d9dde5;
+            --primary: #185abc;
+            --primary-dark: #123f84;
+            --ok: #137333;
+            --warn: #b06000;
+            --error: #b3261e;
+            --shadow: 0 18px 45px rgba(22, 24, 29, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .shell {
+            width: min(1200px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        header {
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 44px);
+            line-height: 1.05;
+            letter-spacing: 0;
+        }
+
+        .subtitle {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 8px 0 4px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .review-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .review-item {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .review-item:hover {
+            box-shadow: 0 4px 12px rgba(22, 24, 29, 0.1);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .review-id {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .review-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff4e5;
+            color: var(--warn);
+        }
+
+        .status-approved {
+            background: #e6f4ea;
+            color: var(--ok);
+        }
+
+        .status-rejected {
+            background: #fce8e6;
+            color: var(--error);
+        }
+
+        .status-escalated {
+            background: #ffe5e5;
+            color: var(--error);
+        }
+
+        .review-content {
+            margin: 12px 0;
+            padding: 12px;
+            background: var(--panel);
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .review-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .review-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 24, 29, 0.15);
+        }
+
+        .btn-approve {
+            background: var(--ok);
+            color: white;
+        }
+
+        .btn-reject {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-escalate {
+            background: var(--warn);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--line);
+            color: var(--text);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(22, 24, 29, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            font: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 24px;
+            color: var(--muted);
+        }
+
+        .error {
+            background: #fce8e6;
+            color: var(--error);
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .review-meta {
+                grid-template-columns: 1fr;
+            }
+            
+            .review-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <h1>Human-in-the-Loop Management</h1>
+            <p class="subtitle">Manage and review AI-generated content requiring human oversight</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="showTab('pending')">Pending Reviews</button>
+            <button class="tab" onclick="showTab('history')">History</button>
+            <button class="tab" onclick="showTab('statistics')">Statistics</button>
+        </div>
+
+        <div id="dashboard-tab" class="tab-content">
+            <div class="panel">
+                <h2>Overview</h2>
+                <div class="stats" id="stats-container">
+                    <div class="loading">Loading statistics...</div>
+                </div>
+                <div id="recent-reviews">
+                    <h3>Recent Reviews</h3>
+                    <div class="loading">Loading recent reviews...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pending-tab" class="tab-content" style="display: none;">
+            <div class="panel">
+                <h2>Pending Reviews</h2>
+                <div id="pending-reviews" class="review-list">
+                    <div class="loading">Loading pending reviews...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-tab" class="tab-content" style="display: none;">
+            <div class="panel">
+                <h2>Review History</h2>
+                <div id="history-reviews" class="review-list">
+                    <div class="loading">Loading review history...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statistics-tab" class="tab-content" style="display: none;">
+            <div class="panel">
+                <h2>Review Statistics</h2>
+                <div id="statistics-content">
+                    <div class="loading">Loading statistics...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="review-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Review Content</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="review-modal-body">
+                <!-- Review content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="action-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Review Action</h3>
+                <button class="close-btn" onclick="closeActionModal()">&times;</button>
+            </div>
+            <form id="action-form">
+                <div class="form-group">
+                    <label class="form-label">Action</label>
+                    <select id="action-type" class="form-select">
+                        <option value="approve">Approve</option>
+                        <option value="reject">Reject</option>
+                        <option value="escalate">Escalate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="action-notes" class="form-textarea" placeholder="Add any additional notes..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reviewer</label>
+                    <input type="text" id="reviewer" class="form-select" placeholder="Enter your name or identifier">
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeActionModal()">Cancel</button>
+                    <button type="submit" class="btn btn-approve">Submit Action</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentReviewId = null;
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).style.display = 'block';
+            event.target.classList.add('active');
+            
+            // Load content for the tab
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'pending':
+                    loadPendingReviews();
+                    break;
+                case 'history':
+                    loadHistoryReviews();
+                    break;
+                case 'statistics':
+                    loadStatistics();
+                    break;
+            }
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // Load statistics
+                const statsResponse = await fetch(`${API_BASE}/hitl/reviews/statistics`);
+                const stats = await statsResponse.json();
+                
+                const statsContainer = document.getElementById('stats-container');
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.total_reviews}</div>
+                        <div class="stat-label">Total Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.pending_reviews}</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.approved_reviews}</div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(stats.approval_rate * 100).toFixed(1)}%</div>
+                        <div class="stat-label">Approval Rate</div>
+                    </div>
+                `;
+                
+                // Load recent reviews
+                const historyResponse = await fetch(`${API_BASE}/hitl/reviews/history?days=1`);
+                const history = await historyResponse.json();
+                
+                const recentReviewsContainer = document.getElementById('recent-reviews');
+                recentReviewsContainer.innerHTML = '<h3>Recent Reviews</h3>' + renderReviews(history.slice(0, 5));
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard data');
+            }
+        }
+
+        // Load pending reviews
+        async function loadPendingReviews() {
+            try {
+                const response = await fetch(`${API_BASE}/hitl/reviews/pending`);
+                const reviews = await response.json();
+                
+                const container = document.getElementById('pending-reviews');
+                if (reviews.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--muted);">No pending reviews</p>';
+                } else {
+                    container.innerHTML = renderReviews(reviews);
+                }
+            } catch (error) {
+                console.error('Error loading pending reviews:', error);
+                showError('Failed to load pending reviews');
+            }
+        }
+
+        // Load history reviews
+        async function loadHistoryReviews() {
+            try {
+                const response = await fetch(`${API_BASE}/hitl/reviews/history?days=7`);
+                const reviews = await response.json();
+                
+                const container = document.getElementById('history-reviews');
+                if (reviews.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--muted);">No review history found</p>';
+                } else {
+                    container.innerHTML = renderReviews(reviews);
+                }
+            } catch (error) {
+                console.error('Error loading history reviews:', error);
+                showError('Failed to load review history');
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch(`${API_BASE}/hitl/reviews/statistics`);
+                const stats = await response.json();
+                
+                const container = document.getElementById('statistics-content');
+                container.innerHTML = `
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total_reviews}</div>
+                            <div class="stat-label">Total Reviews</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.pending_reviews}</div>
+                            <div class="stat-label">Pending</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.approved_reviews}</div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.rejected_reviews}</div>
+                            <div class="stat-label">Rejected</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.escalated_reviews}</div>
+                            <div class="stat-label">Escalated</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${(stats.approval_rate * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Approval Rate</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 32px;">
+                        <h3>Performance Metrics</h3>
+                        <div style="margin-top: 16px;">
+                            <p><strong>Processing Time:</strong> Average time per review</p>
+                            <p><strong>Throughput:</strong> Reviews processed per hour</p>
+                            <p><strong>Escalation Rate:</strong> ${(stats.escalated_reviews / stats.total_reviews * 100).toFixed(1)}% of reviews escalated</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                showError('Failed to load statistics');
+            }
+        }
+
+        // Render reviews
+        function renderReviews(reviews) {
+            return reviews.map(review => `
+                <div class="review-item">
+                    <div class="review-header">
+                        <span class="review-id">${review.review_id}</span>
+                        <span class="review-status status-${review.status}">${review.status}</span>
+                    </div>
+                    <div class="review-content">${review.content.substring(0, 200)}${review.content.length > 200 ? '...' : ''}</div>
+                    <div class="review-meta">
+                        <div><strong>Priority:</strong> ${review.priority}</div>
+                        <div><strong>Created:</strong> ${new Date(review.created_at).toLocaleString()}</div>
+                        ${review.reviewed_at ? `<div><strong>Reviewed:</strong> ${new Date(review.reviewed_at).toLocaleString()}</div>` : ''}
+                        ${review.reviewed_by ? `<div><strong>Reviewer:</strong> ${review.reviewed_by}</div>` : ''}
+                    </div>
+                    <div class="review-actions">
+                        ${review.status === 'pending' ? `
+                            <button class="btn btn-approve" onclick="openActionModal('${review.review_id}', 'approve')">Approve</button>
+                            <button class="btn btn-reject" onclick="openActionModal('${review.review_id}', 'reject')">Reject</button>
+                            <button class="btn btn-escalate" onclick="openActionModal('${review.review_id}', 'escalate')">Escalate</button>
+                        ` : ''}
+                        <button class="btn btn-secondary" onclick="openReviewModal('${review.review_id}')">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open review modal
+        async function openReviewModal(reviewId) {
+            try {
+                const response = await fetch(`${API_BASE}/hitl/reviews/pending`);
+                const reviews = await response.json();
+                const review = reviews.find(r => r.review_id === reviewId);
+                
+                if (!review) {
+                    const historyResponse = await fetch(`${API_BASE}/hitl/reviews/history?days=30`);
+                    const history = await historyResponse.json();
+                    const review = history.find(r => r.review_id === reviewId);
+                }
+                
+                if (review) {
+                    document.getElementById('review-modal-body').innerHTML = `
+                        <div class="review-content" style="margin-bottom: 16px;">${review.content}</div>
+                        <div class="review-meta">
+                            <div><strong>Review ID:</strong> ${review.review_id}</div>
+                            <div><strong>Status:</strong> ${review.status}</div>
+                            <div><strong>Priority:</strong> ${review.priority}</div>
+                            <div><strong>Created:</strong> ${new Date(review.created_at).toLocaleString()}</div>
+                            ${review.reviewed_at ? `<div><strong>Reviewed:</strong> ${new Date(review.reviewed_at).toLocaleString()}</div>` : ''}
+                            ${review.reviewed_by ? `<div><strong>Reviewer:</strong> ${review.reviewed_by}</div>` : ''}
+                            ${review.review_notes ? `<div><strong>Notes:</strong> ${review.review_notes}</div>` : ''}
+                            ${review.escalation_reason ? `<div><strong>Escalation Reason:</strong> ${review.escalation_reason}</div>` : ''}
+                        </div>
+                    `;
+                    document.getElementById('review-modal').classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error loading review details:', error);
+                showError('Failed to load review details');
+            }
+        }
+
+        // Open action modal
+        function openActionModal(reviewId, actionType) {
+            currentReviewId = reviewId;
+            document.getElementById('action-type').value = actionType;
+            document.getElementById('action-notes').value = '';
+            document.getElementById('reviewer').value = '';
+            document.getElementById('action-modal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('review-modal').classList.remove('active');
+        }
+
+        // Close action modal
+        function closeActionModal() {
+            document.getElementById('action-modal').classList.remove('active');
+            currentReviewId = null;
+        }
+
+        // Handle action form submission
+        document.getElementById('action-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentReviewId) return;
+            
+            const actionType = document.getElementById('action-type').value;
+            const notes = document.getElementById('action-notes').value;
+            const reviewer = document.getElementById('reviewer').value;
+            
+            if (!reviewer) {
+                alert('Please enter your name/identifier');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/hitl/review/${currentReviewId}/${actionType}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        review_id: currentReviewId,
+                        action: actionType,
+                        reviewer: reviewer,
+                        notes: notes
+                    })
+                });
+                
+                if (response.ok) {
+                    closeActionModal();
+                    // Reload current tab
+                    const activeTab = document.querySelector('.tab.active').textContent;
+                    if (activeTab === 'Dashboard') loadDashboard();
+                    else if (activeTab === 'Pending Reviews') loadPendingReviews();
+                    else if (activeTab === 'History') loadHistoryReviews();
+                    else if (activeTab === 'Statistics') loadStatistics();
+                } else {
+                    const error = await response.json();
+                    showError(`Failed to ${actionType} review: ${error.detail}`);
+                }
+            } catch (error) {
+                console.error('Error submitting action:', error);
+                showError('Failed to submit action');
+            }
+        });
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.body.insertBefore(errorDiv, document.body.firstChild);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboard();
+        });
+
+        // Close modals when clicking outside
+        document.getElementById('review-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeModal();
+        });
+
+        document.getElementById('action-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeActionModal();
+        });
+    </script>
+</body>
+</html>

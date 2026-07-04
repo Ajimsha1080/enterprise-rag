@@ -1,0 +1,19 @@
+apiVersion: v2
+name: rag-api-chart
+description: A Helm chart for deploying RAG API on Kubernetes
+version: 1.0.0
+appVersion: 1.0.0
+maintainers:
+- name: RAG Team
+  email: rag-team@example.com
+keywords:
+- rag
+- api
+- machine-learning
+- ai
+home: https://github.com/your-org/rag-api
+sources:
+- https://github.com/your-org/rag-api
+annotations:
+  category: AI/ML
+  version: "1.0"
